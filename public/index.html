@@ -1,71 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Challenge Task: File Upload</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            text-align: center;
-            width: 350px;
-        }
-
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        input[type="file"] {
-            margin-bottom: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            background: #667eea;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background: #764ba2;
-        }
-
-        .note {
-            font-size: 12px;
-            margin-top: 10px;
-            color: gray;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Challenge Task: File Upload</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 350px;
+    }
+    h1 { margin-bottom: 20px; }
+    input[type="file"] {
+      margin-bottom: 20px;
+      color: #000;
+    }
+    input[type="file"]::file-selector-button {
+      color: white;
+      background: #667eea;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #667eea;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #764ba2; }
+    .message { margin-top: 15px; font-weight: bold; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Upload a File</h1>
+  <div class="card">
+    <h1>Upload a File</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <input type="file" name="file" required><br>
+      <button type="submit">Upload</button>
+    </form>
+    <div id="message"></div>
+    <p class="note">Allowed: JPG, PNG, PDF (Max 5MB)</p>
+  </div>
 
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" required>
-            <br>
-            <button type="submit">Upload</button>
-        </form>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const messageDiv = document.getElementById('message');
 
-        <p class="note">
-            Allowed: JPG, PNG, PDF (Max 5MB)
-        </p>
-    </div>
+    if (params.get('success') === '1') {
+      const filename = params.get('filename');
+      messageDiv.innerHTML = `<p class="message success">File "${filename}" uploaded successfully!</p>`;
+    }
+
+    if (params.get('error') === '1') {
+      const errorMessage = params.get('message');
+      messageDiv.innerHTML = `<p class="message error">Error: ${errorMessage}</p>`;
+    }
+  </script>
 </body>
 </html>
