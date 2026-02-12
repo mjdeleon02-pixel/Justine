@@ -1,26 +1,53 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
-const mime = require('mime-types'); 
+const multer = require('multer');
+const fs = require('fs');
 
-const server = http.createServer((req, res) => {
-    let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            if (err.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('<h1>404 - File Not Found</h1>', 'utf8');
-            } else {
-                res.writeHead(500);
-                res.end(`Server Error: ${err.code}`);
-            }
-        } else {
-            res.writeHead(200, { 'Content-Type': mime.lookup(filePath)});
-            res.end(content, 'utf8');
-        }
-    });
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const upload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only JPG, PNG, and PDF allowed.'));
+        }
+    },
+    limits: { fileSize: 5 * 1024 * 1024 } 
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.post('/upload', upload.single('file'), (req, res) => {
+    res.send(`
+        <h2>File uploaded successfully!</h2>
+        <a href="/">Go back</a>
+    `);
+});
+
+app.use((err, req, res, next) => {
+    res.status(400).send(`
+        <h2>Error: ${err.message}</h2>
+        <a href="/">Go back</a>
+    `);
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
